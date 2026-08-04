@@ -23,7 +23,7 @@ use quickwit_proto::indexing::MergePipelineId;
 use quickwit_proto::types::{DocMappingUid, SplitId};
 use tantivy::Inventory;
 use time::OffsetDateTime;
-use tracing::{info, warn};
+use tracing::{debug, warn};
 
 use super::merge_scheduler_service::schedule_merge;
 use super::{MergeSchedulerService, MergeSplitDownloader};
@@ -331,7 +331,7 @@ impl MergePlanner {
         // index as well.
         let merge_ops = self.compute_merge_ops(is_finalize, ctx).await?;
         for merge_operation in merge_ops {
-            info!(merge_operation=?merge_operation, "schedule merge operation");
+            debug!(merge_operation=?merge_operation, "schedule merge operation");
             let tracked_merge_operation = self
                 .ongoing_merge_operations_inventory
                 .track(merge_operation);
@@ -398,7 +398,7 @@ mod tests {
             num_merge_ops,
             create_timestamp: OffsetDateTime::now_utc().unix_timestamp(),
             maturity: SplitMaturity::Immature {
-                maturation_period: Duration::from_secs(3600),
+                maturation_period: Duration::from_hours(1),
             },
             doc_mapping_uid,
             ..Default::default()
@@ -425,7 +425,7 @@ mod tests {
                 min_level_num_docs: 10_000,
                 merge_factor: 3,
                 max_merge_factor: 5,
-                maturation_period: Duration::from_secs(3600),
+                maturation_period: Duration::from_hours(1),
             },
             50_000,
         ));
